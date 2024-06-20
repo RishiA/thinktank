@@ -16,19 +16,17 @@ def str_to_bool(str_input):
     return str_input.lower() == "true"
 
 def verify_password(stored_password, provided_password):
-    stored_password = stored_password.encode('utf-8')
-    provided_password = provided_password.encode('utf-8')
-    return bcrypt.checkpw(provided_password, stored_password)
+    return bcrypt.checkpw(provided_password.encode('utf-8'), stored_password)
 
 def load_credentials():
+    credentials = st.secrets["credentials"]["usernames"]
     return {
-        username: {
+        user: {
             "name": details["name"],
             "hashed_password": details["password"].encode('utf-8')
-        } for username, details in st.secrets["credentials"]["usernames"].items()
+        } for user, details in credentials.items()
     }
 
-# Load environment variables
 azure_openai_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
 azure_openai_key = os.environ.get("AZURE_OPENAI_KEY")
 openai_api_key = os.environ.get("OPENAI_API_KEY")
@@ -80,7 +78,7 @@ def main():
         password = st.sidebar.text_input("Password", type="password")
         if st.sidebar.button("Login"):
             user_info = credentials.get(username)
-            if user_info and verify_password(password, user_info["hashed_password"]):
+            if user_info and verify_password(user_info["hashed_password"], password):
                 st.session_state["authenticated"] = True
                 st.sidebar.success("Login successful!")
             else:
@@ -88,10 +86,4 @@ def main():
                 return
 
     if not authentication_required or st.session_state.get("authenticated", False):
-        user_msg = st.text_input("Your message:")
-        if user_msg:
-            # Assuming functionality to process message goes here
-            st.write("Processing your message...")
-
-if __name__ == "__main__":
-    main()
+        user_msg = st.text
