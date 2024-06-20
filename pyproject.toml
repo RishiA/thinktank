@@ -2,7 +2,7 @@
 name = "gpt-assistants-api-ui"
 version = "0.1.0"
 description = ""
-authors = ["rishi <arishi@example.com>"]
+authors = ["ryo-ma <saka_ro@yahoo.co.jp>"]
 license = "MIT"
 readme = "README.md"
 
