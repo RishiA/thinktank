@@ -115,4 +115,32 @@ if authentication_required and "credentials" in st.secrets:
     users = load_credentials()
     authenticator = stauth.Authenticate(
         username=list(users.keys()),
-        password=[user["hashed_password"] for user in users.values
+        password=[user["hashed_password"] for user in users.values()],
+        cookie_name=st.secrets["cookie"]["name"],
+        cookie_key=st.secrets["cookie"]["key"],
+        cookie_expiry_days=int(st.secrets["cookie"]["expiry_days"]),
+        hash_func=verify_password
+    )
+
+    name, authentication_status, username = authenticator.login("Login", "main")
+
+    if authentication_status:
+        st.write(f'Welcome {name}!')
+    elif authentication_status == False:
+        st.error("Username/password is incorrect")
+    elif authentication_status == None:
+        st.warning("Please enter your username and password")
+
+def main():
+    if authentication_required and "authentication_status" in st.session_state and not st.session_state["authentication_status"]:
+        return  # Stop if not authenticated
+
+    st.title(assistant_title)
+    user_msg = st.text_input("Your message:")
+
+    if user_msg:
+        # Assuming functionality to process message goes here
+        st.write("Processing your message...")
+
+if __name__ == "__main__":
+    main()
