@@ -314,3 +314,27 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Load credentials from Streamlit secrets
+names = [st.secrets["credentials"]["usernames"][user]["name"] for user in st.secrets["credentials"]["usernames"]]
+usernames = st.secrets["credentials"]["usernames"].keys()
+passwords = [st.secrets["credentials"]["usernames"][user]["password"] for user in st.secrets["credentials"]["usernames"]]
+
+# Create an authenticator object
+authenticator = stauth.Authenticate(
+    names,
+    usernames,
+    passwords,
+    st.secrets["cookie"]["name"],
+    st.secrets["cookie"]["key"],
+    st.secrets["cookie"]["expiry_days"]
+)
+
+name, authentication_status, username = authenticator.login('Login', 'main')
+
+if authentication_status:
+    st.write(f'Welcome *{name}* to the app!')
+elif authentication_status == False:
+    st.error('Username/password is incorrect')
+elif authentication_status == None:
+    st.warning('Please enter your username and password')
