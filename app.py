@@ -7,7 +7,6 @@ import streamlit as st
 import openai
 from openai import AssistantEventHandler
 from dotenv import load_dotenv
-import streamlit_authenticator as stauth
 
 load_dotenv()
 
@@ -22,12 +21,11 @@ def verify_password(stored_password, provided_password):
     return bcrypt.checkpw(provided_password, stored_password)
 
 def load_credentials():
-    credentials = st.secrets["credentials"]["usernames"]
     return {
-        user: {
+        username: {
             "name": details["name"],
-            "hashed_password": details["password"],
-        } for user, details in credentials.items()
+            "hashed_password": details["password"].encode('utf-8')
+        } for username, details in st.secrets["credentials"]["usernames"].items()
     }
 
 # Load environment variables
@@ -37,9 +35,7 @@ openai_api_key = os.environ.get("OPENAI_API_KEY")
 authentication_required = str_to_bool(os.environ.get("AUTHENTICATION_REQUIRED", False))
 assistant_id = os.environ.get("ASSISTANT_ID")
 assistant_title = os.environ.get("ASSISTANT_TITLE", "Assistants API UI")
-enabled_file_upload_message = os.environ.get(
-    "ENABLED_FILE_UPLOAD_MESSAGE", "Upload a file"
-)
+enabled_file_upload_message = os.environ.get("ENABLED_FILE_UPLOAD_MESSAGE", "Upload a file")
 
 client = None
 if azure_openai_endpoint and azure_openai_key:
@@ -75,72 +71,27 @@ class EventHandler(AssistantEventHandler):
         st.session_state.current_markdown.markdown(format_text, True)
         st.session_state.chat_log.append({"name": "assistant", "msg": format_text})
 
-    def on_tool_call_created(self, tool_call):
-        st.session_state.current_tool_input = ""
-        with st.chat_message("Assistant"):
-            st.session_state.current_tool_input_markdown = st.empty()
-
-    def on_tool_call_delta(self, delta, snapshot):
-        if 'current_tool_input_markdown' not in st.session_state:
-            with st.chat_message("Assistant"):
-                st.session_state.current_tool_input_markdown = st.empty()
-
-        if delta.type == "code_interpreter":
-            if delta.code_interpreter.input:
-                st.session_state.current_tool_input += delta.code_interpreter.input
-                input_code = f"### code interpreter\ninput:\n```python\n{st.session_state.current_tool_input}\n```"
-                st.session_state.current_tool_input_markdown.markdown(input_code, True)
-
-            if delta.code_interpreter.outputs:
-                for output in delta.code_interpreter.outputs:
-                    if output.type == "logs":
-                        pass
-
-    def on_tool_call_done(self, tool_call):
-        if tool_call.type == "code_interpreter":
-            input_code = f"### code interpreter\ninput:\n```python\n{tool_call.code_interpreter.input}\n```"
-            st.session_state.current_tool_input_markdown.markdown(input_code, True)
-            st.session_state.chat_log.append({"name": "assistant", "msg": input_code})
-            st.session_state.current_tool_input_markdown = None
-            for output in tool_call.code_interpreter.outputs:
-                if output.type == "logs":
-                    output = f"### code interpreter\noutput:\n```\n{output.logs}\n```"
-                    with st.chat_message("Assistant"):
-                        st.markdown(output, True)
-                        st.session_state.chat_log.append(
-                            {"name": "assistant", "msg": output}
-                        )
-
-if authentication_required and "credentials" in st.secrets:
-    users = load_credentials()
-    authenticator = stauth.Authenticate(
-        username=list(users.keys()),
-        password=[user["hashed_password"] for user in users.values()],
-        cookie_name=st.secrets["cookie"]["name"],
-        cookie_key=st.secrets["cookie"]["key"],
-        cookie_expiry_days=int(st.secrets["cookie"]["expiry_days"]),
-        hash_func=verify_password
-    )
-
-    name, authentication_status, username = authenticator.login("Login", "main")
-
-    if authentication_status:
-        st.write(f'Welcome {name}!')
-    elif authentication_status == False:
-        st.error("Username/password is incorrect")
-    elif authentication_status == None:
-        st.warning("Please enter your username and password")
-
 def main():
-    if authentication_required and "authentication_status" in st.session_state and not st.session_state["authentication_status"]:
-        return  # Stop if not authenticated
-
     st.title(assistant_title)
-    user_msg = st.text_input("Your message:")
 
-    if user_msg:
-        # Assuming functionality to process message goes here
-        st.write("Processing your message...")
+    if authentication_required:
+        credentials = load_credentials()
+        username = st.sidebar.text_input("Username")
+        password = st.sidebar.text_input("Password", type="password")
+        if st.sidebar.button("Login"):
+            user_info = credentials.get(username)
+            if user_info and verify_password(password, user_info["hashed_password"]):
+                st.session_state["authenticated"] = True
+                st.sidebar.success("Login successful!")
+            else:
+                st.sidebar.error("Failed to authenticate.")
+                return
+
+    if not authentication_required or st.session_state.get("authenticated", False):
+        user_msg = st.text_input("Your message:")
+        if user_msg:
+            # Assuming functionality to process message goes here
+            st.write("Processing your message...")
 
 if __name__ == "__main__":
     main()
