@@ -86,4 +86,10 @@ def main():
                 return
 
     if not authentication_required or st.session_state.get("authenticated", False):
-        user_msg = st.text
+        user_msg = st.text_input("Your message:")
+        if user_msg:
+            # Assuming functionality to process message goes here
+            st.write("Processing your message...")
+
+if __name__ == "__main__":
+    main()
