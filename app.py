@@ -271,6 +271,10 @@ def main():
             authenticator.logout(location="sidebar")
 
     st.title(assistant_title)
+
+    # Help text below the title
+    st.write("Ask me questions about the SUI Memo. Like \"What are SUI goals?\" or \"What should Justworks risk strategy need to be?\"")
+
     user_msg = st.chat_input(
         "Message", on_submit=disable_form, disabled=st.session_state.in_progress
     )
