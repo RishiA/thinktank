@@ -272,9 +272,14 @@ def main():
 
     st.title(assistant_title)
 
-    # Help text below the title
-    st.write("Ask me questions about the SUI Memo. Like \"What are SUI goals?\" or \"What should Justworks risk strategy need to be?\"")
-
+     # Help text with Markdown
+    help_text = """
+    Ask me questions about the SUI Memo. Like *"What are SUI goals?"* or *"What should Justworks risk strategy need to be?"*
+    
+    Read the full memo [here](https://docs.google.com/document/d/1O1fiG3U7SV0YikEkBx9L-8HdXNRMhhEHe1SKsZ3PnGs/edit?pli=1#heading=h.6cfu4j7fs1e0).
+    """
+    st.markdown(help_text)
+   
     user_msg = st.chat_input(
         "Message", on_submit=disable_form, disabled=st.session_state.in_progress
     )
