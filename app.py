@@ -274,16 +274,16 @@ def main():
 
      # Help text with Markdown
     help_text = """
-    Ask me questions about the SUI Memo. Like *"What are SUI goals?"* or *"What should Justworks risk strategy need to be?"*
+    Ask me questions about Rishi's application for the Product Think Tank. Like *"Why does Rishi want to join?"* or *"What hard skill does he want to work on?"*
     
-    Read the full memo [here](https://docs.google.com/document/d/1O1fiG3U7SV0YikEkBx9L-8HdXNRMhhEHe1SKsZ3PnGs/edit?pli=1#heading=h.6cfu4j7fs1e0).
+    Read the full application [here](https://docs.google.com/document/d/15z4ipX9l661BCeA3MOC3Z8fe661pUyqClmakaLx9_E4/edit#heading=h.4u2z3i31zdi7).
     """
     st.markdown(help_text)
    
     user_msg = st.chat_input(
         "Message", on_submit=disable_form, disabled=st.session_state.in_progress
     )
-
+    
     if enabled_file_upload_message:
         uploaded_file = st.sidebar.file_uploader(
             enabled_file_upload_message,
